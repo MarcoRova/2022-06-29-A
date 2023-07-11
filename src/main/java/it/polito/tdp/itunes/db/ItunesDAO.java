@@ -16,6 +16,58 @@ import it.polito.tdp.itunes.model.Track;
 
 public class ItunesDAO {
 	
+	public List<Album> getVertici(int N){
+		
+		final String sql = "SELECT a.*, COUNT(t.TrackId) AS N "
+				+ "FROM track t, album a "
+				+ "WHERE t.AlbumId = a.AlbumId "
+				+ "GROUP BY a.AlbumId "
+				+ "HAVING N > ?";
+		List<Album> result = new LinkedList<>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, N);
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				result.add(new Album(res.getInt("AlbumId"), res.getString("Title")));
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
+	
+	public int getNTracks(Album a) {
+		
+
+		final String sql = "SELECT a.AlbumId, count(t.TrackId) AS N "
+				+ "FROM track t, album a "
+				+ "WHERE t.AlbumId = a.AlbumId AND a.AlbumId = ?";
+		int N = 0;
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, a.getAlbumId());
+			ResultSet res = st.executeQuery();
+
+			res.first();
+			N = res.getInt("N");
+			
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return N;
+		
+	}
+	
 	public List<Album> getAllAlbums(){
 		final String sql = "SELECT * FROM Album";
 		List<Album> result = new LinkedList<>();
